@@ -54,4 +54,15 @@ module Selection
     data = Hash[columns.zip(row)]
     new(data)
   end
+
+  def last
+    row = connection.get_first_row <<-SQL
+      SELECT #{columns.join ","} FROM #{table}
+      ORDER BY id
+      DESC LIMIT 1;
+    SQL
+
+    data = Hash[columns.zip(row)]
+    new(data)
+  end
 end
