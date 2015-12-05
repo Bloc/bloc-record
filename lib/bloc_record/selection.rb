@@ -85,6 +85,35 @@ module Selection
     rows_to_array(rows)
   end
 
+  def where(*args)
+    if args.count > 1
+      sql = <<-SQL
+        SELECT #{columns.join ","} FROM #{table}
+        WHERE #{args.shift};
+      SQL
+      rows = connection.execute(sql, args)
+    else
+      case args.first
+      when String
+        expression = args.first
+        rows = connection.execute <<-SQL
+          SELECT #{columns.join ","} FROM #{table}
+          WHERE #{expression};
+        SQL
+      when Hash
+        expression_hash = args.first
+        expression_hash = BlocRecord::Utility.convert_keys(expression_hash)
+        expression = expression_hash.keys.map {|key| "#{key}=:#{key}"}.join(" and ")
+        sql = <<-SQL
+          SELECT #{columns.join ","} FROM #{table}
+          WHERE #{expression};
+        SQL
+        rows = connection.execute(sql, expression_hash)
+      end
+    end
+    rows_to_array(rows)
+  end
+
   private
 
   def init_object_from_row(row)
