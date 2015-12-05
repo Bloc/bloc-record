@@ -71,6 +71,21 @@ module Selection
       SELECT #{columns.join ","} FROM #{table};
     SQL
 
+    rows_to_array(rows)
+  end
+
+  def where(condition)
+    rows = connection.execute <<-SQL
+      SELECT #{columns.join ","} FROM #{table}
+      WHERE #{condition};
+    SQL
+
+    rows_to_array(rows)
+  end
+
+
+  private
+  def rows_to_array(rows)
     rows.map {|row| new(Hash[columns.zip(rows)]) }
   end
 end
