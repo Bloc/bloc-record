@@ -74,11 +74,19 @@ module Selection
     rows_to_array(rows)
   end
 
-  def where(condition)
-    rows = connection.execute <<-SQL
-      SELECT #{columns.join ","} FROM #{table}
-      WHERE #{condition};
-    SQL
+  def where(*args)
+    if args.count > 1
+      sql = <<-SQL
+        SELECT #{columns.join ","} FROM #{table}
+        WHERE #{args.shift};
+      SQL
+      rows = connection.execute(sql, args)
+    else
+      rows = connection.execute <<-SQL
+        SELECT #{columns.join ","} FROM #{table}
+        WHERE #{args.first};
+      SQL
+    end
 
     rows_to_array(rows)
   end
