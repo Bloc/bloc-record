@@ -71,11 +71,24 @@ module Selection
     init_object_from_row(row)
   end
 
+  def all
+    rows = connection.execute <<-SQL
+      SELECT #{columns.join ","} FROM #{table};
+    SQL
+
+    rows_to_array(rows)
+  end
+
   private
+
   def init_object_from_row(row)
     if row
       data = Hash[columns.zip(row)]
       new(data)
     end
+  end
+
+  def rows_to_array(rows)
+    rows.map { |row| new(Hash[columns.zip(row)]) }
   end
 end
