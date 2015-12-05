@@ -65,4 +65,12 @@ module Selection
     data = Hash[columns.zip(row)]
     new(data)
   end
+
+  def all
+    rows = connection.execute <<-SQL
+      SELECT #{columns.join ","} FROM #{table};
+    SQL
+
+    rows.map {|row| new(Hash[columns.zip(rows)]) }
+  end
 end
