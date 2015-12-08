@@ -108,6 +108,15 @@ module Selection
     rows_to_array(rows)
   end
 
+  def order(order)
+    order = order.to_s
+    rows = connection.execute <<-SQL
+      SELECT * FROM #{table}
+      ORDER BY #{order};
+    SQL
+    rows_to_array(rows)
+  end
+
   private
 
   def init_object_from_row(row)
