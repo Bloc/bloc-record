@@ -31,6 +31,26 @@ module Selection
     init_object_from_row(row)
   end
 
+  def take(num=1)
+    if num > 1
+      objs = []
+      num.times { objs << take_one }
+      objs
+    else
+      take_one
+    end
+  end
+
+  def take_one
+    row = connection.get_first_row <<-SQL
+      SELECT #{columns.join ","} FROM #{table}
+      ORDER BY random()
+      LIMIT 1;
+    SQL
+
+    init_object_from_row(row)
+  end
+
   private
   def init_object_from_row(row)
     if row
