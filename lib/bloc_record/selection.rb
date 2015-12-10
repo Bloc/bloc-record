@@ -51,6 +51,16 @@ module Selection
     init_object_from_row(row)
   end
 
+  def first
+    row = connection.get_first_row <<-SQL
+      SELECT #{columns.join ","} FROM #{table}
+      ORDER BY id
+      ASC LIMIT 1;
+    SQL
+
+    init_object_from_row(row)
+  end
+
   private
   def init_object_from_row(row)
     if row
