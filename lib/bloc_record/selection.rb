@@ -121,16 +121,24 @@ module Selection
     rows_to_array(rows)
   end
 
-  def join(arg)
-    if arg.class == String
+  def join(*args)
+    if args.count > 1
+      joins = args.map { |arg| "INNER JOIN #{arg} ON #{arg}.#{table}_id = #{table}.id"}.join(" ")
       rows = connection.execute <<-SQL
-        SELECT * FROM #{table} #{BlocRecord::Utility.sql_strings(arg)};
+        SELECT * FROM #{table} #{joins}
       SQL
-    elsif arg.class == Symbol
-      rows = connection.execute <<-SQL
-        SELECT * FROM #{table}
-        INNER JOIN #{arg} ON #{arg}.#{table}_id = #{table}.id
-      SQL
+    else
+      case args.first
+      when String
+        rows = connection.execute <<-SQL
+          SELECT * FROM #{table} #{BlocRecord::Utility.sql_strings(args.first)};
+        SQL
+      when Symbol
+        rows = connection.execute <<-SQL
+          SELECT * FROM #{table}
+          INNER JOIN #{args.first} ON #{args.first}.#{table}_id = #{table}.id
+        SQL
+      end
     end
     rows_to_array(rows)
   end
