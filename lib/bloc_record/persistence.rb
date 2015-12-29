@@ -27,13 +27,18 @@ module Persistence
       updates.delete "id"
       updates_array = updates.map { |key, value| "#{key}=#{BlocRecord::Utility.sql_strings(value)}" }
 
+      where_clause = id.nil? ? ";" : "WHERE id = #{id};"
+
       connection.execute <<-SQL
         UPDATE #{table}
-        SET #{updates_array * ","}
-        WHERE id = #{id};
+        SET #{updates_array * ","} #{where_clause}
       SQL
 
       true
+    end
+
+    def update_all(updates)
+      update(nil, updates)
     end
   end
 
