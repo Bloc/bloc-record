@@ -58,4 +58,8 @@ module Persistence
   def save
     self.save! rescue false
   end
+
+  def update_attribute(attribute, value)
+    self.class.update(self.id, { attribute => value })
+  end
 end
