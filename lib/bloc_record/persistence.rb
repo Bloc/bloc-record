@@ -21,6 +21,20 @@ module Persistence
       data["id"] = connection.execute("SELECT last_insert_rowid();")[0][0]
       new(data)
     end
+
+    def update(id, updates)
+      updates = BlocRecord::Utility.convert_keys(updates)
+      updates.delete "id"
+      updates_array = updates.map { |key, value| "#{key}=#{BlocRecord::Utility.sql_strings(value)}" }
+
+      connection.execute <<-SQL
+        UPDATE #{table}
+        SET #{updates_array * ","}
+        WHERE id = #{id};
+      SQL
+
+      true
+    end
   end
 
   def save!
