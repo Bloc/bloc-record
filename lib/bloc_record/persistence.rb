@@ -22,12 +22,17 @@ module Persistence
       new(data)
     end
 
-    def update(id, updates)
+    def update(ids, updates)
       updates = BlocRecord::Utility.convert_keys(updates)
       updates.delete "id"
       updates_array = updates.map { |key, value| "#{key}=#{BlocRecord::Utility.sql_strings(value)}" }
-
-      where_clause = id.nil? ? ";" : "WHERE id = #{id};"
+      if ids.class == Fixnum
+        where_clause = "WHERE id = #{ids};"
+      elsif ids.class == Array
+        where_clause = ids.empty? ? ";" : "WHERE id IN (#{ids.join(",")});"
+      else
+        where_clause = ";"
+      end
 
       connection.execute <<-SQL
         UPDATE #{table}
