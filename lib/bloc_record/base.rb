@@ -3,6 +3,7 @@ require 'bloc_record/schema'
 require 'bloc_record/persistence'
 require 'bloc_record/selection'
 require 'bloc_record/connection'
+require 'bloc_record/collection'
 
 module BlocRecord
   class Base
