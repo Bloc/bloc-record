@@ -45,6 +45,15 @@ module Persistence
     def update_all(updates)
       update(nil, updates)
     end
+
+    def destroy(id)
+      connection.execute <<-SQL
+        DELETE FROM #{table}
+        WHERE id = #{id};
+      SQL
+
+      true
+    end
   end
 
   def save!
