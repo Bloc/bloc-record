@@ -152,6 +152,13 @@ module Selection
     collection
   end
 
+  def limit(value)
+    rows = connection.execute <<-SQL
+      SELECT * FROM #{table} LIMIT #{value};
+    SQL
+    rows_to_array(rows)
+  end
+
   private
 
   def init_object_from_row(row)
