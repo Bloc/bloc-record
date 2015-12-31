@@ -159,6 +159,21 @@ module Selection
     rows_to_array(rows)
   end
 
+  def group(*args)
+    if args.count > 1
+      conditions = args.join(", ")
+    else
+      conditions = args.first
+    end
+
+    rows = connection.execute <<-SQL
+      SELECT * FROM #{table}
+      GROUP BY #{conditions};
+    SQL
+
+    rows_to_array(rows)
+  end
+
   private
 
   def init_object_from_row(row)
