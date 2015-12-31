@@ -90,4 +90,8 @@ module Persistence
   def update_attributes(updates)
     self.class.update(self.id, updates)
   end
+
+  def destroy
+    self.class.destroy(self.id)
+  end
 end
