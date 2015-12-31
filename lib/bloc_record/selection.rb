@@ -143,6 +143,15 @@ module Selection
     rows_to_array(rows)
   end
 
+  def select(*fields)
+    rows = connection.execute <<-SQL
+      SELECT #{fields * ", "} FROM #{table};
+    SQL
+    collection = BlocRecord::Collection.new
+    rows.each { |row| collection << new(Hash[fields.zip(row)]) }
+    collection
+  end
+
   private
 
   def init_object_from_row(row)
