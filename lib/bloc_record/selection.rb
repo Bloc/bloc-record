@@ -159,6 +159,17 @@ module Selection
     rows_to_array(rows)
   end
 
+  def group(*args)
+    args.join(', ')
+
+    rows = connection.execute <<-SQL
+      SELECT * FROM #{table}
+      GROUP BY #{conditions};
+    SQL
+
+    rows_to_array(rows)
+  end
+
   private
 
   def init_object_from_row(row)
