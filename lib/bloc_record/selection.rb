@@ -152,9 +152,9 @@ module Selection
     collection
   end
 
-  def limit(value)
+  def limit(value, offset=0)
     rows = connection.execute <<-SQL
-      SELECT * FROM #{table} LIMIT #{value};
+      SELECT * FROM #{table} LIMIT #{value} OFFSET #{offset};
     SQL
     rows_to_array(rows)
   end
