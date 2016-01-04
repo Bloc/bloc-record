@@ -160,10 +160,16 @@ module Selection
   end
 
   def group(*args)
+    group_by_ids(nil, args)
+  end
+
+  def group_by_ids(ids, args)
     args.join(', ')
 
+    where_clause = ids.nil? ? "" : "WHERE id IN (#{ids.join(",")})"
+
     rows = connection.execute <<-SQL
-      SELECT * FROM #{table}
+      SELECT * FROM #{table} #{where_clause}
       GROUP BY #{conditions};
     SQL
 
