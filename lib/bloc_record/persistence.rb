@@ -12,10 +12,10 @@ module Persistence
       attrs.delete "id"
       vals = attributes.map { |key| BlocRecord::Utility.sql_strings(attrs[key]) }
 
-      connection.execute <<-SQL
-        INSERT INTO #{table} (#{attributes.join ","})
-        VALUES (#{vals.join ","});
-      SQL
+      connection.execute(
+        "INSERT INTO #{table} (#{attributes.join(",")}) VALUES (?)",
+        vals.join(",")
+      )
 
       data = Hash[attributes.zip attrs.values]
       data["id"] = connection.execute("SELECT last_insert_rowid();")[0][0]
@@ -25,7 +25,7 @@ module Persistence
     def update(ids, updates)
       updates = BlocRecord::Utility.convert_keys(updates)
       updates.delete "id"
-      updates_array = updates.map { |key, value| "#{key}=#{BlocRecord::Utility.sql_strings(value)}" }
+      updates_array = updates.keys.map { |key| "#{key} = ?" }
       if ids.class == Fixnum
         where_clause = "WHERE id = #{ids};"
       elsif ids.class == Array
@@ -34,10 +34,10 @@ module Persistence
         where_clause = ";"
       end
 
-      connection.execute <<-SQL
-        UPDATE #{table}
-        SET #{updates_array * ","} #{where_clause}
-      SQL
+      connection.execute(
+        "UPDATE #{table} SET #{updates_array.join(", ")} #{where_clause}",
+        updates.values
+      )
 
       true
     end
@@ -63,12 +63,12 @@ module Persistence
     def destroy_all(conditions_hash=nil)
       if conditions_hash && !conditions_hash.empty?
         conditions_hash = BlocRecord::Utility.convert_keys(conditions_hash)
-        conditions = conditions_hash.map {|key, value| "#{key}=#{BlocRecord::Utility.sql_strings(value)}"}.join(" and ")
+        conditions = conditions_hash.keys.map { |key| "#{key} = ?" }.join(" and ")
 
-        connection.execute <<-SQL
-          DELETE FROM #{table}
-          WHERE #{conditions};
-        SQL
+        connection.execute(
+          "DELETE FROM #{table} WHERE #{conditions};",
+          conditions_hash.values
+        )
       else
         connection.execute <<-SQL
           DELETE FROM #{table}

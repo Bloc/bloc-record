@@ -25,21 +25,20 @@ module Selection
   end
 
   def find_by(attribute, value)
-    row = connection.get_first_row <<-SQL
-      SELECT #{columns.join ","} FROM #{table}
-      WHERE #{attribute} = #{BlocRecord::Utility.sql_strings(value)};
-    SQL
+    row = connection.get_first_row(
+      "SELECT #{columns.join ","} FROM #{table} WHERE #{attribute} = ?;",
+      BlocRecord::Utility.sql_strings(value)
+    )
 
     init_object_from_row(row)
   end
 
   def take(num=1)
     if num > 1
-      rows = connection.execute <<-SQL
-        SELECT #{columns.join ","} FROM #{table}
-        ORDER BY random()
-        LIMIT #{num};
-      SQL
+      rows = connection.execute(
+        "SELECT #{columns.join ","} FROM #{table} ORDER BY random() LIMIT ?;",
+        num
+      )
 
       rows_to_array(rows)
     else
@@ -87,28 +86,26 @@ module Selection
 
   def where(*args)
     if args.count > 1
-      sql = <<-SQL
-        SELECT #{columns.join ","} FROM #{table}
-        WHERE #{args.shift};
-      SQL
-      rows = connection.execute(sql, args)
+      rows = connection.execute(
+        "SELECT #{columns.join ","} FROM #{table} WHERE #{args.shift};",
+        args
+      )
     else
       case args.first
       when String
         expression = args.first
-        rows = connection.execute <<-SQL
-          SELECT #{columns.join ","} FROM #{table}
-          WHERE #{expression};
-        SQL
+        rows = connection.execute(
+          "SELECT #{columns.join ","} FROM #{table} WHERE ?;",
+          expression
+        )
       when Hash
         expression_hash = args.first
         expression_hash = BlocRecord::Utility.convert_keys(expression_hash)
         expression = expression_hash.keys.map {|key| "#{key}=:#{key}"}.join(" and ")
-        sql = <<-SQL
-          SELECT #{columns.join ","} FROM #{table}
-          WHERE #{expression};
-        SQL
-        rows = connection.execute(sql, expression_hash)
+        rows = connection.execute(
+          "SELECT #{columns.join ","} FROM #{table} WHERE #{expression};",
+          expression_hash
+        )
       end
     end
     rows_to_array(rows)
@@ -120,10 +117,10 @@ module Selection
     else
       order = args.first.to_s
     end
-    rows = connection.execute <<-SQL
-      SELECT * FROM #{table}
-      ORDER BY #{order};
-    SQL
+    rows = connection.execute(
+      "SELECT * FROM #{table} ORDER BY ?;",
+      order
+    )
     rows_to_array(rows)
   end
 
@@ -150,18 +147,20 @@ module Selection
   end
 
   def select(*fields)
-    rows = connection.execute <<-SQL
-      SELECT #{fields * ", "} FROM #{table};
-    SQL
+    rows = connection.execute(
+      "SELECT ? FROM #{table};",
+      fields.join(", ")
+    )
     collection = BlocRecord::Collection.new
     rows.each { |row| collection << new(Hash[fields.zip(row)]) }
     collection
   end
 
   def limit(value, offset=0)
-    rows = connection.execute <<-SQL
-      SELECT * FROM #{table} LIMIT #{value} OFFSET #{offset};
-    SQL
+    rows = connection.execute(
+      "SELECT * FROM #{table} LIMIT ? OFFSET ?;",
+      [value, offset]
+    )
     rows_to_array(rows)
   end
 
@@ -178,10 +177,10 @@ module Selection
 
     where_clause = ids.nil? ? "" : "WHERE id IN (#{ids.join(",")})"
 
-    rows = connection.execute <<-SQL
-      SELECT * FROM #{table} #{where_clause}
-      GROUP BY #{conditions};
-    SQL
+    rows = connection.execute(
+      "SELECT * FROM #{table} #{where_clause} GROUP BY ?;",
+      conditions.to_s
+    )
 
     rows_to_array(rows)
   end
